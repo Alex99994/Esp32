@@ -5,12 +5,91 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ThingSpeak Data Display</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Include Chart.js -->
 </head>
 <body>
     <h1>ThingSpeak Data Display</h1>
     <div id="data-container">
         <p>Loading data...</p>
     </div>
-    <script src="script.js"></script>
+    <canvas id="myChart" width="400" height="200"></canvas> <!-- Chart container -->
+    <script>
+        // ThingSpeak API details
+        const channelID = '2830994'; // Your ThingSpeak channel ID
+        const readAPIKey = 'CN3YM8GM4OX5OZ8X'; // Your ThingSpeak read API key
+        const results = 10; // Number of data points to fetch
+
+        // URL for fetching data from ThingSpeak
+        const url = `https://api.thingspeak.com/channels/${channelID}/feeds.json?api_key=${readAPIKey}&results=${results}`;
+
+        // Fetch data from ThingSpeak
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                const dataContainer = document.getElementById('data-container');
+                const feeds = data.feeds;
+
+                if (feeds && feeds.length > 0) {
+                    // Extract timestamps, temperature, and humidity data
+                    const labels = feeds.map(feed => new Date(feed.created_at).toLocaleTimeString());
+                    const temperatureData = feeds.map(feed => parseFloat(feed.field1));
+                    const humidityData = feeds.map(feed => parseFloat(feed.field2));
+
+                    // Display latest data
+                    dataContainer.innerHTML = `
+                        <p>Latest Temperature: ${temperatureData[temperatureData.length - 1]}°C</p>
+                        <p>Latest Humidity: ${humidityData[humidityData.length - 1]}%</p>
+                    `;
+
+                    // Render the chart
+                    const ctx = document.getElementById('myChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line', // Line chart
+                        data: {
+                            labels: labels, // X-axis labels (timestamps)
+                            datasets: [
+                                {
+                                    label: 'Temperature (°C)',
+                                    data: temperatureData,
+                                    borderColor: 'rgba(255, 99, 132, 1)', // Red color for temperature
+                                    fill: false,
+                                },
+                                {
+                                    label: 'Humidity (%)',
+                                    data: humidityData,
+                                    borderColor: 'rgba(54, 162, 235, 1)', // Blue color for humidity
+                                    fill: false,
+                                },
+                            ],
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                x: {
+                                    display: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Time',
+                                    },
+                                },
+                                y: {
+                                    display: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Value',
+                                    },
+                                },
+                            },
+                        },
+                    });
+                } else {
+                    dataContainer.innerHTML = `<p>No data available.</p>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+                document.getElementById('data-container').innerHTML = `<p>Error loading data.</p>`;
+            });
+    </script>
 </body>
 </html>
