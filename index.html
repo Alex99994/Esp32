@@ -32,6 +32,18 @@
             </div>
         </section>
 
+        <section id="chart-controls">
+            <h2>Diagramm-Einstellungen</h2>
+            <label for="time-range">Zeitraum auswählen:</label>
+            <select id="time-range">
+                <option value="10">Letzte 10 Datenpunkte</option>
+                <option value="50">Letzte 50 Datenpunkte</option>
+                <option value="100">Letzte 100 Datenpunkte</option>
+                <option value="all">Alle Datenpunkte</option>
+            </select>
+            <button onclick="updateChart()">Aktualisieren</button>
+        </section>
+
         <section id="chart-section">
             <h2>Datenverlauf</h2>
             <canvas id="myChart" width="400" height="200"></canvas>
@@ -40,9 +52,10 @@
         <section id="instructions">
             <h2>So funktioniert's</h2>
             <p>
-                1. Die Daten werden von ThingSpeak abgerufen.<br>
-                2. Die neuesten Temperatur- und Luftfeuchtigkeitswerte werden oben angezeigt.<br>
-                3. Das Diagramm zeigt den Verlauf der letzten 10 Datenpunkte.
+                1. Wähle den gewünschten Zeitraum aus dem Dropdown-Menü aus.<br>
+                2. Klicke auf "Aktualisieren", um das Diagramm zu aktualisieren.<br>
+                3. Die neuesten Temperatur- und Luftfeuchtigkeitswerte werden oben angezeigt.<br>
+                4. Das Diagramm zeigt den Verlauf der ausgewählten Datenpunkte.
             </p>
         </section>
     </main>
@@ -52,82 +65,101 @@
     </footer>
 
     <script>
+        let myChart; // Variable für das Chart-Objekt
+
         // ThingSpeak API details
         const channelID = '2830994'; // Deine ThingSpeak-Kanal-ID
         const readAPIKey = 'CN3YM8GM4OX5OZ8X'; // Dein ThingSpeak Read API Key
-        const results = 10; // Anzahl der abzurufenden Datenpunkte
 
-        // URL für den Abruf der Daten von ThingSpeak
-        const url = `https://api.thingspeak.com/channels/${channelID}/feeds.json?api_key=${readAPIKey}&results=${results}`;
+        // Funktion zum Abrufen und Anzeigen der Daten
+        function fetchData(results) {
+            const url = `https://api.thingspeak.com/channels/${channelID}/feeds.json?api_key=${readAPIKey}&results=${results}`;
 
-        // Daten von ThingSpeak abrufen
-        fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                const dataContainer = document.getElementById('data-container');
-                const feeds = data.feeds;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const dataContainer = document.getElementById('data-container');
+                    const feeds = data.feeds;
 
-                if (feeds && feeds.length > 0) {
-                    // Extrahiere Zeitstempel, Temperatur und Luftfeuchtigkeit
-                    const labels = feeds.map(feed => new Date(feed.created_at).toLocaleTimeString());
-                    const temperatureData = feeds.map(feed => parseFloat(feed.field1));
-                    const humidityData = feeds.map(feed => parseFloat(feed.field2));
+                    if (feeds && feeds.length > 0) {
+                        // Extrahiere Zeitstempel, Temperatur und Luftfeuchtigkeit
+                        const labels = feeds.map(feed => new Date(feed.created_at).toLocaleTimeString());
+                        const temperatureData = feeds.map(feed => parseFloat(feed.field1));
+                        const humidityData = feeds.map(feed => parseFloat(feed.field2));
 
-                    // Zeige die neuesten Daten an
-                    dataContainer.innerHTML = `
-                        <p><strong>Temperatur:</strong> ${temperatureData[temperatureData.length - 1]}°C</p>
-                        <p><strong>Luftfeuchtigkeit:</strong> ${humidityData[humidityData.length - 1]}%</p>
-                    `;
+                        // Zeige die neuesten Daten an
+                        dataContainer.innerHTML = `
+                            <p><strong>Temperatur:</strong> ${temperatureData[temperatureData.length - 1]}°C</p>
+                            <p><strong>Luftfeuchtigkeit:</strong> ${humidityData[humidityData.length - 1]}%</p>
+                        `;
 
-                    // Diagramm erstellen
-                    const ctx = document.getElementById('myChart').getContext('2d');
-                    new Chart(ctx, {
-                        type: 'line', // Liniendiagramm
-                        data: {
-                            labels: labels, // X-Achsen-Beschriftungen (Zeitstempel)
-                            datasets: [
-                                {
-                                    label: 'Temperatur (°C)',
-                                    data: temperatureData,
-                                    borderColor: 'rgba(255, 99, 132, 1)', // Rot für Temperatur
-                                    fill: false,
+                        // Diagramm erstellen oder aktualisieren
+                        if (myChart) {
+                            myChart.data.labels = labels;
+                            myChart.data.datasets[0].data = temperatureData;
+                            myChart.data.datasets[1].data = humidityData;
+                            myChart.update();
+                        } else {
+                            const ctx = document.getElementById('myChart').getContext('2d');
+                            myChart = new Chart(ctx, {
+                                type: 'line', // Liniendiagramm
+                                data: {
+                                    labels: labels, // X-Achsen-Beschriftungen (Zeitstempel)
+                                    datasets: [
+                                        {
+                                            label: 'Temperatur (°C)',
+                                            data: temperatureData,
+                                            borderColor: 'rgba(255, 99, 132, 1)', // Rot für Temperatur
+                                            fill: false,
+                                        },
+                                        {
+                                            label: 'Luftfeuchtigkeit (%)',
+                                            data: humidityData,
+                                            borderColor: 'rgba(54, 162, 235, 1)', // Blau für Luftfeuchtigkeit
+                                            fill: false,
+                                        },
+                                    ],
                                 },
-                                {
-                                    label: 'Luftfeuchtigkeit (%)',
-                                    data: humidityData,
-                                    borderColor: 'rgba(54, 162, 235, 1)', // Blau für Luftfeuchtigkeit
-                                    fill: false,
-                                },
-                            ],
-                        },
-                        options: {
-                            responsive: true,
-                            scales: {
-                                x: {
-                                    display: true,
-                                    title: {
-                                        display: true,
-                                        text: 'Zeit',
+                                options: {
+                                    responsive: true,
+                                    scales: {
+                                        x: {
+                                            display: true,
+                                            title: {
+                                                display: true,
+                                                text: 'Zeit',
+                                            },
+                                        },
+                                        y: {
+                                            display: true,
+                                            title: {
+                                                display: true,
+                                                text: 'Wert',
+                                            },
+                                        },
                                     },
                                 },
-                                y: {
-                                    display: true,
-                                    title: {
-                                        display: true,
-                                        text: 'Wert',
-                                    },
-                                },
-                            },
-                        },
-                    });
-                } else {
-                    dataContainer.innerHTML = `<p>Keine Daten verfügbar.</p>`;
-                }
-            })
-            .catch(error => {
-                console.error('Fehler beim Abrufen der Daten:', error);
-                document.getElementById('data-container').innerHTML = `<p>Fehler beim Laden der Daten.</p>`;
-            });
+                            });
+                        }
+                    } else {
+                        dataContainer.innerHTML = `<p>Keine Daten verfügbar.</p>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Fehler beim Abrufen der Daten:', error);
+                    document.getElementById('data-container').innerHTML = `<p>Fehler beim Laden der Daten.</p>`;
+                });
+        }
+
+        // Funktion zum Aktualisieren des Diagramms
+        function updateChart() {
+            const timeRange = document.getElementById('time-range').value;
+            const results = timeRange === 'all' ? 8000 : timeRange; // ThingSpeak erlaubt maximal 8000 Datenpunkte
+            fetchData(results);
+        }
+
+        // Initiale Daten laden (letzte 10 Datenpunkte)
+        fetchData(10);
     </script>
 </body>
 </html>
