@@ -1,28 +1,66 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ThingSpeak Data Display</title>
+    <title>ThingSpeak Datenvisualisierung</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Include Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <h1>ThingSpeak Data Display</h1>
-    <div id="data-container">
-        <p>Loading data...</p>
-    </div>
-    <canvas id="myChart" width="400" height="200"></canvas> <!-- Chart container -->
+    <header>
+        <h1>ThingSpeak Datenvisualisierung</h1>
+        <p>Visualisierung von Temperatur- und Luftfeuchtigkeitsdaten</p>
+    </header>
+
+    <main>
+        <section id="project-info">
+            <h2>Über das Projekt</h2>
+            <p>
+                Dieses Projekt zeigt Daten von einem ThingSpeak-Kanal an, der Temperatur und Luftfeuchtigkeit erfasst.
+                Die Daten werden in Echtzeit abgerufen und in einem Diagramm dargestellt.
+            </p>
+            <p>
+                <strong>Verwendete Technologien:</strong> HTML, CSS, JavaScript, Chart.js, ThingSpeak API.
+            </p>
+        </section>
+
+        <section id="data-display">
+            <h2>Aktuelle Daten</h2>
+            <div id="data-container">
+                <p>Lade Daten...</p>
+            </div>
+        </section>
+
+        <section id="chart-section">
+            <h2>Datenverlauf</h2>
+            <canvas id="myChart" width="400" height="200"></canvas>
+        </section>
+
+        <section id="instructions">
+            <h2>So funktioniert's</h2>
+            <p>
+                1. Die Daten werden von ThingSpeak abgerufen.<br>
+                2. Die neuesten Temperatur- und Luftfeuchtigkeitswerte werden oben angezeigt.<br>
+                3. Das Diagramm zeigt den Verlauf der letzten 10 Datenpunkte.
+            </p>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 Dein Name. Alle Rechte vorbehalten.</p>
+    </footer>
+
     <script>
         // ThingSpeak API details
-        const channelID = '2830994'; // Your ThingSpeak channel ID
-        const readAPIKey = 'CN3YM8GM4OX5OZ8X'; // Your ThingSpeak read API key
-        const results = 10; // Number of data points to fetch
+        const channelID = '2830994'; // Deine ThingSpeak-Kanal-ID
+        const readAPIKey = 'CN3YM8GM4OX5OZ8X'; // Dein ThingSpeak Read API Key
+        const results = 10; // Anzahl der abzurufenden Datenpunkte
 
-        // URL for fetching data from ThingSpeak
+        // URL für den Abruf der Daten von ThingSpeak
         const url = `https://api.thingspeak.com/channels/${channelID}/feeds.json?api_key=${readAPIKey}&results=${results}`;
 
-        // Fetch data from ThingSpeak
+        // Daten von ThingSpeak abrufen
         fetch(url)
             .then(response => response.json())
             .then(data => {
@@ -30,34 +68,34 @@
                 const feeds = data.feeds;
 
                 if (feeds && feeds.length > 0) {
-                    // Extract timestamps, temperature, and humidity data
+                    // Extrahiere Zeitstempel, Temperatur und Luftfeuchtigkeit
                     const labels = feeds.map(feed => new Date(feed.created_at).toLocaleTimeString());
                     const temperatureData = feeds.map(feed => parseFloat(feed.field1));
                     const humidityData = feeds.map(feed => parseFloat(feed.field2));
 
-                    // Display latest data
+                    // Zeige die neuesten Daten an
                     dataContainer.innerHTML = `
-                        <p>Latest Temperature: ${temperatureData[temperatureData.length - 1]}°C</p>
-                        <p>Latest Humidity: ${humidityData[humidityData.length - 1]}%</p>
+                        <p><strong>Temperatur:</strong> ${temperatureData[temperatureData.length - 1]}°C</p>
+                        <p><strong>Luftfeuchtigkeit:</strong> ${humidityData[humidityData.length - 1]}%</p>
                     `;
 
-                    // Render the chart
+                    // Diagramm erstellen
                     const ctx = document.getElementById('myChart').getContext('2d');
                     new Chart(ctx, {
-                        type: 'line', // Line chart
+                        type: 'line', // Liniendiagramm
                         data: {
-                            labels: labels, // X-axis labels (timestamps)
+                            labels: labels, // X-Achsen-Beschriftungen (Zeitstempel)
                             datasets: [
                                 {
-                                    label: 'Temperature (°C)',
+                                    label: 'Temperatur (°C)',
                                     data: temperatureData,
-                                    borderColor: 'rgba(255, 99, 132, 1)', // Red color for temperature
+                                    borderColor: 'rgba(255, 99, 132, 1)', // Rot für Temperatur
                                     fill: false,
                                 },
                                 {
-                                    label: 'Humidity (%)',
+                                    label: 'Luftfeuchtigkeit (%)',
                                     data: humidityData,
-                                    borderColor: 'rgba(54, 162, 235, 1)', // Blue color for humidity
+                                    borderColor: 'rgba(54, 162, 235, 1)', // Blau für Luftfeuchtigkeit
                                     fill: false,
                                 },
                             ],
@@ -69,26 +107,26 @@
                                     display: true,
                                     title: {
                                         display: true,
-                                        text: 'Time',
+                                        text: 'Zeit',
                                     },
                                 },
                                 y: {
                                     display: true,
                                     title: {
                                         display: true,
-                                        text: 'Value',
+                                        text: 'Wert',
                                     },
                                 },
                             },
                         },
                     });
                 } else {
-                    dataContainer.innerHTML = `<p>No data available.</p>`;
+                    dataContainer.innerHTML = `<p>Keine Daten verfügbar.</p>`;
                 }
             })
             .catch(error => {
-                console.error('Error fetching data:', error);
-                document.getElementById('data-container').innerHTML = `<p>Error loading data.</p>`;
+                console.error('Fehler beim Abrufen der Daten:', error);
+                document.getElementById('data-container').innerHTML = `<p>Fehler beim Laden der Daten.</p>`;
             });
     </script>
 </body>
