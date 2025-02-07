@@ -1,30 +1,63 @@
+/* Allgemeine Stile */
 body {
     font-family: Arial, sans-serif;
-    text-align: center;
-    margin: 50px;
-    background-color: #f4f4f4;
-}
-
-h1 {
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9;
     color: #333;
+    line-height: 1.6;
 }
 
-#data-container {
-    margin-top: 20px;
+header {
+    background-color: #4CAF50;
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2.5em;
+}
+
+header p {
+    margin: 5px 0 0;
     font-size: 1.2em;
-    color: #555;
-    background-color: #fff;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    display: inline-block;
 }
 
-canvas {
-    max-width: 800px;
-    margin: 20px auto;
-    background-color: #fff;
+main {
+    padding: 20px;
+}
+
+section {
+    margin-bottom: 30px;
+    background-color: white;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    color: #4CAF50;
+    margin-top: 0;
+}
+
+#data-container {
+    font-size: 1.2em;
+    color: #555;
+}
+
+canvas {
+    max-width: 100%;
+    margin-top: 20px;
+}
+
+footer {
+    text-align: center;
+    padding: 10px;
+    background-color: #333;
+    color: white;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
 }
